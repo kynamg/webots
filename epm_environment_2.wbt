@@ -1,0 +1,247 @@
+#VRML_SIM V8.4.0 utf8
+WorldInfo {
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation 0.792905 -0.388128 -0.469743 4.73805
+  position 0.161984 2.57045 0.75728
+}
+DEF FLOOR_CLOSED Floor {
+  size 1.1 0.1
+  texture [
+    "textures/plastic.jpg"
+  ]
+}
+DEF WALL Solid {
+  children [
+    Shape {
+    }
+  ]
+  boundingObject Group {
+    children [
+      DEF WALL_SIDE_4_BOUND Transform {
+        translation 0.300764 0.15 -0.0542735
+        rotation 0 1 0 1.5708
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.5
+            }
+          }
+        ]
+      }
+      DEF WALL_SIDE_3_BOUND Transform {
+        translation -0.3 0.15 -0.0552374
+        rotation 0 1 0 1.5708
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.5
+            }
+          }
+        ]
+      }
+      DEF WALL_SIDE_2_BOUND Transform {
+        translation 0.30012 0.15 0.0548879
+        rotation 0 1 0 1.5708
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.5
+            }
+          }
+        ]
+      }
+      DEF WALL_SIDE_1_BOUND Transform {
+        translation -0.295229 0.15 0.0546096
+        rotation 0 1 0 1.5708
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.5
+            }
+          }
+        ]
+      }
+      DEF WALL_END_2_BOUND Transform {
+        translation -0.55 0.15 0
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.1
+            }
+          }
+        ]
+      }
+      DEF WALL_END_1_BOUND Transform {
+        translation 0.55 0.15 0
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.3 0.1
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+DEF WALL_END_2 SolidBox {
+  translation -0.55 0.15 0
+  size 0.01 0.3 0.1
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF WALL_END_1 SolidBox {
+  translation 0.55 0.15 0
+  size 0.01 0.3 0.1
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF WALL_SIDE_3 SolidBox {
+  translation -0.3 0.15 -0.0552374
+  rotation 0 1 0 1.5708
+  size 0.01 0.3 0.5
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF WALL_SIDE_4 SolidBox {
+  translation 0.300764 0.15 -0.0542735
+  rotation 0 1 0 1.5708
+  size 0.01 0.3 0.5
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF WALL_SIDE_1 SolidBox {
+  translation -0.295229 0.15 0.0546096
+  rotation 0 1 0 1.5708
+  size 0.01 0.3 0.5
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF WALL_SIDE_2 SolidBox {
+  translation 0.30012 0.15 0.0548879
+  rotation 0 1 0 1.5708
+  size 0.01 0.3 0.5
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/desktop_wood.jpg"
+      ]
+    }
+  }
+}
+DEF FLOOR_OPEN_1 Floor {
+  translation 0 0 -0.3
+  rotation 0 1 0 1.5708
+  size 0.5 0.1
+  texture [
+    "textures/grass.jpg"
+  ]
+}
+DEF FLOOR_OPEN_2 Floor {
+  translation 0 0 0.3
+  rotation 0 1 0 1.5708
+  size 0.5 0.1
+  texture [
+    "textures/grass.jpg"
+  ]
+}
+DEF LIGHTING PointLight {
+  ambientIntensity 0.6
+  intensity 0.3
+  location 0.75 0.5 0.5
+}
+DEF LIGHTING PointLight {
+  ambientIntensity 0.6
+  intensity 0.3
+  location -0.5 0.5 0.35
+}
+DEF LIGHTING PointLight {
+  ambientIntensity 0.6
+  intensity 0.3
+  location 0.45 0.5 -0.5
+}
+DEF LIGHTING PointLight {
+  ambientIntensity 0.6
+  intensity 0.3
+  location -0.5 0.5 -0.35
+}
+Background {
+  skyColor [
+    0.3 0.5 1
+  ]
+}
