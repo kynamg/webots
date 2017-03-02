@@ -3,10 +3,12 @@ WorldInfo {
   basicTimeStep 16
 }
 Viewpoint {
-  orientation 0.792905 -0.388128 -0.469743 4.73805
-  position 0.161984 2.57045 0.75728
+  orientation 0.910891 -0.251975 -0.326782 5.34408
+  position 0.22053 1.97453 1.77605
 }
-DEF FLOOR_CLOSED Floor {
+DEF DEADPOOL E-puck {
+}
+DEF FLOOR_WALLED Floor {
   size 1.1 0.1
   texture [
     "textures/plastic.jpg"
