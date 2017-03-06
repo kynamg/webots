@@ -3,16 +3,62 @@ WorldInfo {
   basicTimeStep 16
 }
 Viewpoint {
-  orientation 0.910891 -0.251975 -0.326782 5.34408
-  position 0.22053 1.97453 1.77605
+  orientation 0.292533 -0.776546 -0.558034 4.24736
+  position 1.6825 2.71276 -0.0282221
+}
+DEF OPEN_FLOOR_1 SolidBox {
+  translation 0 0 -0.3
+  rotation 0 1 0 1.5708
+  size 0.5 0.01 0.1
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/grass.jpg"
+      ]
+    }
+  }
+}
+DEF OPEN_FLOOR_1 SolidBox {
+  translation 0 0 0.3
+  rotation 0 1 0 1.5708
+  size 0.5 0.01 0.1
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/grass.jpg"
+      ]
+    }
+  }
+}
+DEF WALLED_FLOOR SolidBox {
+  size 1.1 0.01 0.1
+  appearance Appearance {
+    material Material {
+    }
+    texture ImageTexture {
+      url [
+        "textures/steel_floor.jpg"
+      ]
+    }
+  }
 }
 DEF DEADPOOL E-puck {
-}
-DEF FLOOR_WALLED Floor {
-  size 1.1 0.1
-  texture [
-    "textures/plastic.jpg"
-  ]
+  hidden linearVelocity_0 0.00811134 -1.79906e-06 0.00919934
+  hidden angularVelocity_0 -0.0722153 0.00812919 0.0636687
+  hidden translation_1 -0.0260046 0.0200016 -6.45237e-07
+  hidden rotation_1 1 -6.16506e-06 -2.83432e-06 -2.98516
+  hidden linearVelocity_1 0.00793351 -3.18873e-06 0.00899726
+  hidden angularVelocity_1 0.450435 0.00812693 -0.397174
+  hidden translation_2 0.0260046 0.0200017 7.85202e-07
+  hidden rotation_2 1 -9.01144e-06 1.06734e-05 1.33047
+  hidden linearVelocity_2 0.00765256 -3.40595e-06 0.00867973
+  hidden angularVelocity_2 0.433398 0.00812653 -0.382115
+  translation -0.491097 0.00496727 0.00266231
+  rotation -0.00426357 0.99999 0.00160469 0.722696
 }
 DEF WALL Solid {
   children [
@@ -206,20 +252,11 @@ DEF WALL_SIDE_2 SolidBox {
     }
   }
 }
-DEF FLOOR_OPEN_1 Floor {
-  translation 0 0 -0.3
-  rotation 0 1 0 1.5708
-  size 0.5 0.1
+DEF INFINITE_PLANE Floor {
+  translation 0 -0.009 0
+  size 2 2
   texture [
-    "textures/grass.jpg"
-  ]
-}
-DEF FLOOR_OPEN_2 Floor {
-  translation 0 0 0.3
-  rotation 0 1 0 1.5708
-  size 0.5 0.1
-  texture [
-    "textures/grass.jpg"
+    "textures/grid.png"
   ]
 }
 DEF LIGHTING PointLight {
