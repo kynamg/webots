@@ -15,10 +15,10 @@ static int time_step;
 static WbDeviceTag receiver;
 static double floor_sensor_val[3] = {250, 250, 250}; //check in debugging - 300 - values for this need to be investigated
 //fields for distance calculations
-static double total_dist, max_dist, dist_from_start;
+static double total_dist, max_dist, dist_from_init;
 static double previous_x, previous_y;
 //fields for the fitness function
-static int punishment, reward, off_maze;
+static int punishment, off_maze, check_val;
 
 //given
 static const int POPULATION_SIZE = 50;
@@ -70,21 +70,26 @@ void plot_fitness(int generation, double best_fitness, double average_fitness) {
   prev_best_fitness = best_fitness;
   prev_average_fitness = average_fitness;
 }
- 
-// run the robot simulation for the specified number of seconds
-void run_seconds(double seconds) {
-  int i, n = 1000.0 * seconds / time_step;
-  for (i = 0; i < n; i++) {
-    if (demo && wb_robot_keyboard_get_key() == 'O') {
-      demo = false;
-      return; // interrupt demo and start GA optimization
-    }
 
+//written by Kyna Mowat-Gosnell
+// run the robot simulation for the specified number of seconds
+void run_seconds(double seconds) 
+{
+  int i, n = 1000.0 * seconds / time_step;
+  for (i = 0; i < n; i++) 
+ {
+   //find distance covered in current time step and add to total distance
+   const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation); 
+   double dx = load_trans[X] - robot
+   
+   double dxx = load_trans[X] - previous_x;
+   double dzz = load_trans[Z] - previous y;
+   total_dist += sqrt(dxx * dxx + dzz * dzz);
+ 
     wb_robot_step(time_step);
   }
 }
 
-//written by Kyna Mowat-Gosnell
 //get simulation time step, returned in milliseconds
 int get_time_step()
 {
@@ -114,29 +119,55 @@ int detect_maze_edge()
   else return 4; //no edge detected - check in debugging
 }
 
-void check()
+void check() //go through this carefully
 {
   int f, r, maze;
   //check if receiver is getting info
   if (wb_receiver_get_queue_length(receiver) > 0) 
   {
      const double *array = wb_receiver_get_data(receiver);
-    reward = 0; //reset inside loop
-    reward = array[0]; //set variable to first element in array
+    check_val = 0; //reset inside loop
+    check_val = array[0]; //set variable to first element in array
     
     //floor sensor data
     for(f = 0; f < 3; f++)
     {
       floor_sensor_val[f] = array[f + 8];
-    }    
+    }
+    
+    //infrared sensor data
+    for (r = 0; r < 8; r++)
+    {
+      if(array[r] > check_val)
+      {
+        check_val = array[r];
+      }
+    }
+    
+    if(check_val < 50)
+    {
+      punishment = punishment + 1;
+    }
+    
+    wb_receiver_next_packet(receiver);
+  }
+  
+  maze = detect_maze_edge();
+  //robot is off of the maze if floor sensors detect white
+  if(maze == 0 || maze == 1 || maze == 2)
+  {
+    off_maze += 2; //experiment with this parameter
+  }
+  
+  //set distance from initalisation to max distance travelled
+  if(dist_from_init > max_dist)
+  {
+    max_dist = dist_from_init;
   }
 }
   
 double measure_fitness() {
-  //const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation);
-  //double dx = load_trans[X] - load_trans0[X];
-  //double dz = load_trans[Z] - load_trans0[Z];
-  //return sqrt(dx * dx + dz * dz);
+ 
 }
 
 // evaluate one genotype at a time
