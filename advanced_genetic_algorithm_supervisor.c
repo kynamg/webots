@@ -18,7 +18,7 @@ static double floor_sensor_val[3] = {250, 250, 250}; //check in debugging - 300 
 static double total_dist, max_dist, dist_from_init;
 static double previous_x, previous_y;
 //fields for the fitness function
-static int punishment, off_maze, check_val;
+static int off_maze, check_val, danger_zone;
 
 //given
 static const int POPULATION_SIZE = 50;
@@ -152,7 +152,7 @@ void robot_check() //go through this carefully
     
     if(check_val < 50)
     {
-      punishment = punishment + 1;
+      danger_zone = danger_zone + 1;
     }
     
     wb_receiver_next_packet(receiver);
@@ -172,8 +172,13 @@ void robot_check() //go through this carefully
   }
 }
   
-double measure_fitness() {
- 
+double measure_fitness() 
+{
+  double fitness_val;
+  double reward = (total_dist * 100) + (max_dist * 400); //experiment with numbers here
+  double punishment = (danger_zone) + (off_maze);
+  fitness_val = (reward) - (punishment);
+  return fitness_val;
 }
 
 // evaluate one genotype at a time
