@@ -46,7 +46,7 @@ static WbFieldRef robot_rotation;
 static double robot_trans0[3];  // a translation needs 3 doubles
 static double robot_rot0[4];    // a rotation needs 4 doubles
 
-static bool demo = false; //demo used in run_seconds
+//static bool demo = false; //demo used in run_seconds
 
 void draw_scaled_line(int generation, double y1, double y2) {
   const double XSCALE = (double)display_width / NUM_GENERATIONS;
@@ -80,14 +80,20 @@ void run_seconds(double seconds)
  {
    //find distance covered in current time step and add to total distance
    const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation); 
-   double dx = load_trans[X] - robot
+   double dx = load_trans[X] - robot_trans0[X];
+   double dz = load_trans[Z] - robot_trans0[Z];
+   dist_from_init = sqrt(dx * dx + dz * dz);
    
    double dxx = load_trans[X] - previous_x;
    double dzz = load_trans[Z] - previous y;
    total_dist += sqrt(dxx * dxx + dzz * dzz);
+   
+   previous_x = load_trans[X];
+   previous_y = load_trans[Y];
  
-    wb_robot_step(time_step);
-  }
+   wb_robot_step(time_step);
+   robot_check();
+ }
 }
 
 //get simulation time step, returned in milliseconds
@@ -119,7 +125,7 @@ int detect_maze_edge()
   else return 4; //no edge detected - check in debugging
 }
 
-void check() //go through this carefully
+void robot_check() //go through this carefully
 {
   int f, r, maze;
   //check if receiver is getting info
