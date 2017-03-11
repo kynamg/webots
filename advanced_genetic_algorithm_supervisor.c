@@ -5,16 +5,20 @@
 #include <webots/supervisor.h>
 #include <webots/robot.h>
 #include <webots/emitter.h>
+#include <webots/receiver.h> //locate this h file
 #include <webots/display.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
 
-double x // = connect to ANN
 static int time_step;
-double position_array[8] = {UNVISITED,UNVISITED,UNVISITED,UNVISITED,UNVISITED,UNVISITED,UNVISITED,UNVISITED}
-
-
+static WbDeviceTag receiver;
+static double floor_sensor_val[3] = {250, 250, 250}; //check in debugging - 300 - values for this need to be investigated
+//fields for distance calculations
+static double total_dist, max_dist, dist_from_start;
+static double previous_x, previous_y;
+//fields for the fitness function
+static int punishment, reward, off_maze;
 
 //given
 static const int POPULATION_SIZE = 50;
@@ -81,31 +85,53 @@ void run_seconds(double seconds) {
 }
 
 //written by Kyna Mowat-Gosnell
-double get_position(x, time_step)
+//get simulation time step, returned in milliseconds
+int get_time_step()
 {
-  WbNodeRef robot_node = wb_supervisor_node_get_from_def("DEADPOOL");
-  WbFieldRef robot_translation = wb_supervisor_node_get_field(robot_node, "translation");
-  
-  while((wb_robot_step(32) != -1) //change 32
+  time_step = -1;
+  if (time_step == -1)
   {
-    const double *translation = wb_supervisor_field_get_sf_vec3f(robot_translation);
-    //print position for debugging purposes
-    printf("DEADPOOL is at position: %g %g %g\n", translation[0], translation[1], translation[2]);
+    time_step = (int) wb_robot_get_basic_time_step();
+  }
+  return time_step;
+}
+
+//check if robot is inside the black EPM arms
+int detect_maze_edge()
+{
+  if(floor_sensor_val[0] > 500) //edge left
+  {
+    return 0;
+  }
+  else if(floor_sensor_val[1] > 500) //edge forward
+  {
+    return 1;
+  }
+   else if(floor_sensor_val[2] > 500) //edge right
+  {
+    return 2;
+  }
+  else return 4; //no edge detected - check in debugging
+}
+
+void check()
+{
+  int f, r, maze;
+  //check if receiver is getting info
+  if (wb_receiver_get_queue_length(receiver) > 0) 
+  {
+     const double *array = wb_receiver_get_data(receiver);
+    reward = 0; //reset inside loop
+    reward = array[0]; //set variable to first element in array
+    
+    //floor sensor data
+    for(f = 0; f < 3; f++)
+    {
+      floor_sensor_val[f] = array[f + 8];
+    }    
   }
 }
-
-
-
-double reward(x, time_step)
-{
   
-}
-
-double punishment(x, time_step)
-{
-
-}
-
 double measure_fitness() {
   //const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation);
   //double dx = load_trans[X] - load_trans0[X];
@@ -119,7 +145,7 @@ void evaluate_genotype(Genotype genotype) {
   // send genotype to robot for evaluation
   wb_emitter_send(emitter, genotype_get_genes(genotype), GENOTYPE_SIZE * sizeof(double));
   
-  // reset robot position
+  // reset robot vector position and rotation
   wb_supervisor_field_set_sf_vec3f(robot_translation, robot_trans0);
   wb_supervisor_field_set_sf_rotation(robot_rotation, robot_rot0);
 
