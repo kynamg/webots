@@ -172,12 +172,17 @@ void robot_check() //go through this carefully
   }
 }
   
-double measure_fitness() 
+double fitness() 
 {
   double fitness_val;
-  double reward = (total_dist * 100) + (max_dist * 400); //experiment with numbers here
+  double reward = (total_dist * 100) + (max_dist * 200); //experiment with numbers here
   double punishment = (danger_zone) + (off_maze);
   fitness_val = (reward) - (punishment);
+  //print for debugging purposes
+  printf("*******************************");
+  printf("*  reward: ", reward, "    *");
+  printf("*  punishment: ", punishment, "    *");
+  printf("*  Fitness Value: ", fitness_val, "    *");
   return fitness_val;
 }
 
@@ -187,18 +192,26 @@ void evaluate_genotype(Genotype genotype) {
   // send genotype to robot for evaluation
   wb_emitter_send(emitter, genotype_get_genes(genotype), GENOTYPE_SIZE * sizeof(double));
   
+  //reset the world physics to fix bugs
+  wb_supervisor_node_reset_physics(wb_supervisor_node_get_from_def("DEADPOOL"));
+  
+  //reset fitness function variables to evaluate new genotype
+  total_dist = 0;
+  max_dist = 0;
+  danger_zone = 0;
+  off_maze = 0;
+  dist_from_init = 0;
+  
   // reset robot vector position and rotation
   wb_supervisor_field_set_sf_vec3f(robot_translation, robot_trans0);
   wb_supervisor_field_set_sf_rotation(robot_rotation, robot_rot0);
 
-  // evaluation genotype during one minute
-  run_seconds(60.0);
+  // evaluation genotype during 300 seconds (5 minutes)
+  run_seconds(300.0); 
   
   // measure fitness
-  double fitness = measure_fitness();
-  genotype_set_fitness(genotype, fitness);
-
-  printf("fitness: %g\n", fitness);
+  double fitness_val = fitness();
+  genotype_set_fitness(genotype, fitness_val);
 }
 
 void run_optimization() {
