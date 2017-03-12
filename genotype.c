@@ -61,7 +61,7 @@ void genotype_mutate(Genotype g) {
       g->genes[i] += random_get_gaussian() * MUTATION_DEVIATION;
 }
 
-// crossover
+//3 point crossover
 Genotype genotype_crossover(Genotype parent1, Genotype parent2) {
   
   Genotype child = genotype_create();
@@ -69,21 +69,52 @@ Genotype genotype_crossover(Genotype parent1, Genotype parent2) {
   // choose random locus
   int locus1 = random_get_integer(genotype_size);
   int locus2 = random_get_integer(genotype_size);
+  int locus3 = random_get_integer(genotype_size);
 
   // if locus1 is after locus2, swap them
-  if (locus1 > locus2) {
-    int tmp = locus1;
+  if (locus1 > locus2) 
+  {
+    int tmp1 = locus1;
     locus1 = locus2;
-    locus2 = tmp;
+    locus2 = tmp1;
+  }
+  
+   // if locus1 is after locus3, swap them
+  if (locus1 > locus3) 
+  {
+    int tmp2 = locus1;
+    locus1 = locus3;
+    locus2 = tmp2;
+  }
+  
+   // if locus2 is after locus3, swap them
+  if (locus2 > locus3) 
+  {
+    int tmp3 = locus2;
+    locus2 = locus3;
+    locus3 = tmp3;
   }
 
   int i;
   for (i = 0; i < genotype_size; i++)
+  {
     if (i > locus1 && i < locus2)
-      child->genes[i] = parent1->genes[i];
-    else
+    {
       child->genes[i] = parent2->genes[i];
-  
+    }
+    else if (i < locus1)
+    {
+      child->genes[i] = parent1->genes[i];
+    }
+    else if(i > locus2 && i < locus3)
+    {
+      child->genes[i] = parent1->genes[i];
+    }
+    else if(i > locus3)
+    {
+      child->genes[i] = parent2->genes[i];
+    }
+  }
   return child;
 }
 
