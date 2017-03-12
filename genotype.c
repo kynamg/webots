@@ -9,7 +9,7 @@ static const double MUTATION_DEVIATION  = 0.2;
 
 struct _Genotype_ {
   double *genes;   // genome
-  double fitness;  // fitness
+  double fitness_val;  // fitness value
 };
 
 static int genotype_size = -1;
@@ -25,7 +25,7 @@ void genotype_set_size(int size) {
 Genotype genotype_create() {
   assert(genotype_size > 0);
   Genotype gen = malloc(sizeof(struct _Genotype_));
-  gen->fitness = 0.0;
+  gen->fitness_val = 0.0;
   gen->genes = malloc(genotype_size * sizeof(double));
 
   // initialize with random uniform numbers in the range [0,1]
@@ -49,7 +49,7 @@ Genotype genotype_clone(Genotype g) {
   for (i = 0; i < genotype_size; i++)
     clone->genes[i] = g->genes[i];
 
-  clone->fitness = g->fitness;
+  clone->fitness_val = g->fitness_val;
   return clone;
 }
 
@@ -118,12 +118,12 @@ Genotype genotype_crossover(Genotype parent1, Genotype parent2) {
   return child;
 }
 
-void genotype_set_fitness(Genotype g, double fitness) {
-  g->fitness = fitness;
+void genotype_set_fitness(Genotype g, double fitness_val) {
+  g->fitness_val = fitness_val;
 }
 
 double genotype_get_fitness(Genotype g) {
-  return g->fitness;
+  return g->fitness_val;
 }
 
 const double *genotype_get_genes(Genotype g) {
