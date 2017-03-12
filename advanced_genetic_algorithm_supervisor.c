@@ -46,8 +46,6 @@ static WbFieldRef robot_rotation;
 static double robot_trans0[3];  // a translation needs 3 doubles
 static double robot_rot0[4];    // a rotation needs 4 doubles
 
-//static bool demo = false; //demo used in run_seconds
-
 void draw_scaled_line(int generation, double y1, double y2) {
   const double XSCALE = (double)display_width / NUM_GENERATIONS;
   const double YSCALE = 10.0;
@@ -175,14 +173,18 @@ void robot_check() //go through this carefully
 double fitness() 
 {
   double fitness_val;
+  
   double reward = (total_dist * 100) + (max_dist * 200); //experiment with numbers here
   double punishment = (danger_zone) + (off_maze);
+  
   fitness_val = (reward) - (punishment);
+  
   //print for debugging purposes
   printf("*******************************");
   printf("*  reward: ", reward, "    *");
   printf("*  punishment: ", punishment, "    *");
   printf("*  Fitness Value: ", fitness_val, "    *");
+  
   return fitness_val;
 }
 
@@ -259,29 +261,6 @@ void run_optimization() {
   
   population_destroy(population);
 }
-  
-// show demo of the fittest individual
-void run_demo() {
-  wb_robot_keyboard_enable(time_step);
-  
-  printf("---\n");
-  printf("running demo of best individual ...\n");
-  printf("select the 3D window and push the 'O' key\n");
-  printf("to start genetic algorithm optimization\n");
-
-  FILE *infile = fopen(FILE_NAME, "r");
-  if (! infile) {
-    printf("unable to read %s\n", FILE_NAME);
-    return;
-  }
-  
-  Genotype genotype = genotype_create();
-  genotype_fread(genotype, infile);
-  fclose(infile);
-  
-  while (demo)
-    evaluate_genotype(genotype);
-}
 
 int main(int argc, const char *argv[]) {
   
@@ -294,6 +273,10 @@ int main(int argc, const char *argv[]) {
   // the emitter to send genotype to robot
   emitter = wb_robot_get_device("emitter");
   
+  //enable receiver of genotype on robot
+  receiver = wb_robot_get_device("receiver");
+  wb_receiver_enable(receiver, get_time_step());
+  
   // to display the fitness evolution
   display = wb_robot_get_device("display");
   display_width = wb_display_get_width(display);
@@ -304,14 +287,13 @@ int main(int argc, const char *argv[]) {
   population = population_create(POPULATION_SIZE, GENOTYPE_SIZE);
   
   // find robot node and store initial position and orientation
+  previous_x = robot_rot0[X];
+  previous_y = robot_rot0[Y];
   WbNodeRef robot = wb_supervisor_node_get_from_def("ROBOT");
   robot_translation = wb_supervisor_node_get_field(robot, "translation");
   robot_rotation = wb_supervisor_node_get_field(robot, "rotation");
   memcpy(robot_trans0, wb_supervisor_field_get_sf_vec3f(robot_translation), sizeof(robot_trans0));
   memcpy(robot_rot0, wb_supervisor_field_get_sf_rotation(robot_rotation), sizeof(robot_rot0));
-  
-  if (demo)
-    run_demo();
 
   // run GA optimization
   run_optimization();
