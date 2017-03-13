@@ -72,7 +72,7 @@ static void run_sensors(void)
          ps_offset[i]=ps_offset_real[i];
       }
    }
-   for(i=0;i<NB_Sens_Dist;i++)
+   for(i=0;i<NB_Dist_Sens;i++)
    {
       ps_value[i]= (int) wb_distance_sensor_get_value(ps[i]);
    }
