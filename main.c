@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <advanced_genetic_algorithm_supervisor.c>
+//#include <advanced_genetic_algorithm_supervisor.c>
 //Include the Webots libraries
-#include <webots/robots.h>
+#include <webots/robot.h>
 #include <webots/differential_wheels.h>
 #include <webots/distance_sensor.h>
 
@@ -21,8 +21,8 @@
 #define PS_Left_10    7
 WbDeviceTag ps[NB_Dist_Sens];
 int ps_value[NB_Dist_Sens]={0,0,0,0,0,0,0,0};
-int ps_offset_sim[NB_DIST_SENS] = {35,35,35,35,35,35,35,35};
-int ps_offset_real[NB_DIST_SENS] = {375,158,423,682,447,594,142,360}; // to be modified according to your robot
+int ps_offset_sim[NB_Dist_Sens] = {35,35,35,35,35,35,35,35};
+int ps_offset_real[NB_Dist_Sens] = {375,158,423,682,447,594,142,360}; // to be modified according to your robot
 char * ps_text[]={"one","two","three","eleven","ten","nine"};
 
 //Defining the motors
@@ -76,7 +76,7 @@ static void run_sensors(void)
    {
       ps_value[i]= (int) wb_distance_sensor_get_value(ps[i]);
    }
-   
+
    for(i=0;i<NB_Dist_Sens;i++)
    {
       if(ps_value[i]-ps_offset[i]>THRESHOLD_VALUE)
@@ -106,7 +106,7 @@ static void run_neural_network(void)
 }
 
 //Get the fear factor and which wheel it needs to apply to
-static void Get_Fe(void)
+void Get_Fe(void)
 {
    double Fe_first = 0;
    if(LM>RM)
@@ -140,11 +140,11 @@ static void Get_Fe(void)
 }
 
 //Run the neural network
-static void neural_network(void)
+void neural_network(void)
 {
    float nodes[4]={0,0,0,0};
-   float weights_left[4][3]={3,3,3;1,1,1;0.5,0.5,0.5;0.25,0.25,0.25};
-   float weights_right[4][3]={0.25,0.25,0.25;0.5,0.5,0.5;1,1,1;3,3,3};
+   float weights_left[4][3]={3,3,3,1,1,1,0.5,0.5,0.5,0.25,0.25,0.25};
+   float weights_right[4][3]={0.25,0.25,0.25,0.5,0.5,0.5,1,1,1,3,3,3};
    float weights_result[4]={0.25,0.25,0.25,0.25};
    float nodes_final_left=0;
    float nodes_final_right=0;
@@ -152,24 +152,24 @@ static void neural_network(void)
    float weights_final_right[2]={0.3,0.7};
    int n,w,s;
    //Right Side of Nodes
-   for(n=0;n<nodes.length;n++)
+   for(n=0;n<4;n++)
    {
       w=0;
       for(s=0;s<3;s++)
-      {      
+      {
          nodes[n]=weights_right[n][w]*ps_value[s];
          w++;
       }
    }
    w=0;
-   for(n=0;n<nodes.length;n++)
+   for(n=0;n<4;n++)
    {
       nodes_final_right=nodes_final_right+nodes[n]*weights_result[w];
       w++;
    }
    nodes_final_right=nodes_final_right+Fe*weight_Fe_right;
-   //Left Side of Nodes      
-   for(n=0;n<nodes.length;n++)
+   //Left Side of Nodes
+   for(n=0;n<4;n++)
    {
       w=0;
       for(s=5;s<8;s++)
@@ -179,7 +179,7 @@ static void neural_network(void)
       }
    }
    w=0;
-   for(n=0;n<nodes.length;n++)
+   for(n=0;n<4;n++)
    {
       nodes_final_left=nodes_final_left+nodes[n]*weights_result[w];
       w++;
