@@ -13,8 +13,7 @@
 
 static int time_step;
 static WbDeviceTag receiver;
-static double floor_sensor_val[3] = {250, 250, 250}; //check in debugging - 300 - values for this need to be investigated
-//fields for distance calculations
+static double floor_sensor_val[3] = {300, 300, 300}; //values found in lookup table of groundsensors.proto
 static double total_dist, max_dist, dist_from_init;
 static double previous_x, previous_y;
 //fields for the fitness function
@@ -46,6 +45,10 @@ static WbFieldRef robot_rotation;
 static double robot_trans0[3];  // a translation needs 3 doubles
 static double robot_rot0[4];    // a rotation needs 4 doubles
 
+// for reading or setting the load's position
+static WbFieldRef load_translation;
+//static double load_trans0[3];
+
 void draw_scaled_line(int generation, double y1, double y2) {
   const double XSCALE = (double)display_width / NUM_GENERATIONS;
   const double YSCALE = 10.0;
@@ -70,29 +73,6 @@ void plot_fitness(int generation, double best_fitness, double average_fitness) {
 }
 
 //written by Kyna Mowat-Gosnell
-// run the robot simulation for the specified number of seconds
-void run_seconds(double seconds) 
-{
-  int i, n = 1000.0 * seconds / time_step;
-  for (i = 0; i < n; i++) 
- {
-   //find distance covered in current time step and add to total distance
-   const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation); 
-   double dx = load_trans[X] - robot_trans0[X];
-   double dz = load_trans[Z] - robot_trans0[Z];
-   dist_from_init = sqrt(dx * dx + dz * dz);
-   
-   double dxx = load_trans[X] - previous_x;
-   double dzz = load_trans[Z] - previous y;
-   total_dist += sqrt(dxx * dxx + dzz * dzz);
-   
-   previous_x = load_trans[X];
-   previous_y = load_trans[Y];
- 
-   wb_robot_step(time_step);
-   robot_check();
- }
-}
 
 //get simulation time step, returned in milliseconds
 int get_time_step()
@@ -148,7 +128,7 @@ void robot_check() //go through this carefully
       }
     }
     
-    if(check_val < 50)
+    if(check_val < 50) // 
     {
       danger_zone = danger_zone + 1;
     }
@@ -170,6 +150,30 @@ void robot_check() //go through this carefully
   }
 }
   
+  // run the robot simulation for the specified number of seconds
+void run_seconds(double seconds) 
+{
+  int i, n = 1000.0 * seconds / time_step;
+  for (i = 0; i < n; i++) 
+ {
+   //find distance covered in current time step and add to total distance
+   const double *load_trans = wb_supervisor_field_get_sf_vec3f(load_translation); 
+   double dx = load_trans[X] - robot_trans0[X];
+   double dz = load_trans[Z] - robot_trans0[Z];
+   dist_from_init = sqrt(dx * dx + dz * dz);
+   
+   double dxx = load_trans[X] - previous_x;
+   double dzz = load_trans[Z] - previous_y;
+   total_dist += sqrt(dxx * dxx + dzz * dzz);
+   
+   previous_x = load_trans[X];
+   previous_y = load_trans[Y];
+ 
+   wb_robot_step(time_step);
+   robot_check();
+ }
+}
+  
 double fitness() 
 {
   double fitness_val;
@@ -180,10 +184,10 @@ double fitness()
   fitness_val = (reward) - (punishment);
   
   //print for debugging purposes
-  printf("*******************************");
-  printf("*  reward: ", reward, "    *");
-  printf("*  punishment: ", punishment, "    *");
-  printf("*  Fitness Value: ", fitness_val, "    *");
+ // printf("*******************************");
+ // printf("*  reward: ", reward, "    *");
+ // printf("*  punishment: ", punishment, "    *");
+ // printf("*  Fitness Value: ", fitness_val, "    *");
   
   return fitness_val;
 }
