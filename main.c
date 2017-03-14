@@ -1,11 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-//#include <advanced_genetic_algorithm_supervisor.c>
+#include <advanced_genetic_algorithm_supervisor.h>
+#include <genotype.h>
+#include <population.h>
 //Include the Webots libraries
 #include <webots/robot.h>
 #include <webots/differential_wheels.h>
 #include <webots/distance_sensor.h>
+#include <webots/supervisor.h>
+#include <webots/emitter.h>
+#include <webots/receiver.h>
+#include <webots/display.h>
 
 #define THRESHOLD_VALUE 100
 #define SIMULATION 0
@@ -35,6 +43,44 @@ float RM=0;
 float Fe = 0;
 float weight_Fe_left = 0;
 float weight_Fe_right = 0;
+
+static int time_step;
+static WbDeviceTag receiver;
+static double floor_sensor_val[3] = {300, 300, 300}; //values found in lookup table of groundsensors.proto
+static double total_dist, max_dist, dist_from_init;
+static double previous_x, previous_y;
+//fields for the fitness function
+static int off_maze, check_val, danger_zone;
+
+//given
+static const int POPULATION_SIZE = 50;
+static const int NUM_GENERATIONS = 25;
+static const char *FILE_NAME = "most_fit.txt";
+
+// must match the values in the advanced_genetic_algorithm.c code
+static const int NUM_SENSORS = 8;
+static const int NUM_WHEELS  = 2;
+#define GENOTYPE_SIZE (NUM_SENSORS * NUM_WHEELS)
+
+// index access
+enum { X, Y, Z };
+
+static WbDeviceTag emitter;   // to send genes to robot
+static WbDeviceTag display;   // to display the fitness evolution
+static int display_width, display_height;
+
+// the GA population
+static Population population;
+
+// for reading or setting the robot's position and orientation
+static WbFieldRef robot_translation;
+static WbFieldRef robot_rotation;
+static double robot_trans0[3];  // a translation needs 3 doubles
+static double robot_rot0[4];    // a rotation needs 4 doubles
+
+// for reading or setting the load's position
+static WbFieldRef load_translation;
+//static double load_trans0[3];
 
 //Initialise the sensors at the beginning of the program
 static void reset_sensors(void)
@@ -198,9 +244,34 @@ int main()
     reset_sensors();
     wb_differential_wheels_enable_encoders(128);
     wb_differential_wheels_set_encoders(0,0);
+
+    time_step = wb_robot_get_basic_time_step();
+    emitter = wb_robot_get_device("emitter");
+    receiver = wb_robot_get_device("receiver");
+    wb_receiver_enable(receiver, get_time_step());
+
+    display = wb_robot_get_device("display");
+    display_width = wb_display_get_width(display);
+    display_height = wb_display_get_height(display);
+
     while(1)
     {
-      run_neural_network();
+        wb_display_draw_text(display, "fitness", 2, 2);
+
+        population = population_create(POPULATION_SIZE, GENOTYPE_SIZE);
+        previous_x = robot_rot0[X];
+        previous_y = robot_rot0[Y];
+
+        WbNodeRef robot = wb_supervisor_node_get_from_def("ROBOT");
+        robot_translation = wb_supervisor_node_get_field(robot, "translation");
+        robot_rotation = wb_supervisor_node_get_field(robot, "rotation");
+
+        memcpy(robot_trans0, wb_supervisor_field_get_sf_vec3f(robot_translation), sizeof(robot_trans0));
+        memcpy(robot_rot0, wb_supervisor_field_get_sf_rotation(robot_rotation), sizeof(robot_rot0));
+
+        run_optimization();
+        run_neural_network();
     }
+    wb_robot_cleanup();
     return 0;
 }
