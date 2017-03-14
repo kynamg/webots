@@ -21,7 +21,7 @@
 ###
 ### ---- C Sources ----
 ### if your program uses several C source files:
-C_SOURCES = advanced_genetic_algorithm_supervisor.c genotype.c population.c random.c
+C_SOURCES = neural_net.c
 ###
 ### ---- C++ Sources ----
 ### if your program uses several C++ source files:
