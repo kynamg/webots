@@ -162,19 +162,28 @@ void run_seconds(double seconds)
    printf("in run seconds for loop\n");
    //find distance covered in current time step and add to total distance
    const double *load_trans = wb_supervisor_field_get_sf_vec3f(robot_translation); 
-   
+   printf("after load_trans\n");
    double dx = load_trans[X] - robot_trans0[X];
+   printf("after dx\n");
    double dz = load_trans[Z] - robot_trans0[Z];
+   printf("after dz\n");
    dist_from_init = sqrt(dx * dx + dz * dz);
+   printf("after dist from init\n");
    
    double dxx = load_trans[X] - previous_x;
+   printf("after dxx\n");
    double dzz = load_trans[Z] - previous_y;
+   printf("after dzz\n");
    total_dist += sqrt(dxx * dxx + dzz * dzz);
+   printf("after total_dist\n");
    
    previous_x = load_trans[X];
+   printf("after previous_x\n");
    previous_y = load_trans[Y];
+   printf("after previous_y\n");
  
    wb_robot_step(time_step);
+   printf("before robot_check\n");
    robot_check();
    
  }
