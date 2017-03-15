@@ -25,11 +25,12 @@
 #define PS_Left_90    5
 #define PS_Left_45    6
 #define PS_Left_10    7
-#define TIME_STEP 32
+
+static int time_step;
 WbDeviceTag ps[NB_Dist_Sens];
 int ps_value[NB_Dist_Sens]={0,0,0,0,0,0,0,0};
-int ps_offset_sim[NB_Dist_Sens] = {35,35,35,35,35,35,35,35};
-int ps_offset_real[NB_Dist_Sens] = {375,158,423,682,447,594,142,360}; // to be modified according to your robot
+int ps_ofgset_sim[NB_Dist_Sens] = {35,35,35,35,35,35,35,35};
+int ps_ofgset_real[NB_Dist_Sens] = {375,158,423,682,447,594,142,360}; // to be modified according to your robot
 char *ps_text[]={"one","two","three","five","seven","nine","ten","eleven"};
 
 //defining IR floor sensors
@@ -37,9 +38,9 @@ char *ps_text[]={"one","two","three","five","seven","nine","ten","eleven"};
 #define PS_Floor_1 0
 #define PS_Floor_2 1
 #define PS_Floor_3 2
-WbDeviceTag fs[NB_Floor_Sens];
-int fs_value[NB_Floor_Sens]={0,0,0};
-static const char *floor_sensor_label[NB_Floor_Sens] = {"fs0","fs1","fs2"};
+WbDeviceTag gs[NB_Floor_Sens];
+int gs_value[NB_Floor_Sens]={0,0,0};
+static const char *floor_sensor_label[NB_Floor_Sens] = {"gs0","gs1","gs2"};
 
 //Defining the motors
 #define LEFT 1
@@ -54,6 +55,17 @@ float weight_Fe_right = 0;
 
 static WbDeviceTag emitter;   // to send genes to robot
 static WbDeviceTag receiver; //to receive fitness from supervisor
+
+//get simulation time step, returned in milliseconds
+int get_time_step()
+{
+  time_step = -1;
+  if (time_step == -1)
+  {
+    time_step = (int) wb_robot_get_basic_time_step();
+  }
+  return time_step;
+}
 
 //Initialise the sensors at the beginning of the program
 static void reset_sensors(void)
@@ -72,8 +84,8 @@ static void reset_sensors(void)
     
     for(it=0; it<NB_Floor_Sens; it++)
     {
-      fs[it] = wb_robot_get_device(floor_sensor_label[it]);
-      wb_distance_sensor_enable(fs[it],32);
+      gs[it] = wb_robot_get_device(floor_sensor_label[it]);
+      wb_distance_sensor_enable(gs[it],32);
     }
 }
 
@@ -81,20 +93,20 @@ static void reset_sensors(void)
 static void run_sensors(void)
 {
    int i;
-   int ps_offset[NB_Dist_Sens]={0,0,0,0,0,0,0,0};
+   int ps_ofgset[NB_Dist_Sens]={0,0,0,0,0,0,0,0};
    int mode = wb_robot_get_mode();
    if(mode==SIMULATION)
    {
       for(i=0;i<NB_Dist_Sens;i++)
       {
-         ps_offset[i]=ps_offset_sim[i];
+         ps_ofgset[i]=ps_ofgset_sim[i];
       }
    }
    else
    {
       for(i=0;i<NB_Dist_Sens;i++)
       {
-         ps_offset[i]=ps_offset_real[i];
+         ps_ofgset[i]=ps_ofgset_real[i];
       }
    }
    for(i=0;i<NB_Dist_Sens;i++)
@@ -104,7 +116,7 @@ static void run_sensors(void)
 
    for(i=0;i<NB_Dist_Sens;i++)
    {
-      if(ps_value[i]-ps_offset[i]>THRESHOLD_VALUE)
+      if(ps_value[i]-ps_ofgset[i]>THRESHOLD_VALUE)
       {
          printf("An obstacle is detected at %s o'clock",ps_text[i]);
       }
@@ -126,42 +138,39 @@ static void motor_set_speed(void)
 void Get_Fe(void)
 {
    double Fe_first = 0;
-   const double* fitness_receive[2];
+   
    while(wb_receiver_get_queue_length(receiver)>0)
    {
-       *fitness_receive = wb_receiver_get_data(emitter);
-   }
-   if(LM>RM)
-   {
-      Fe_first=*fitness_receive[0];
-      if(Fe_first>0)
-      {
-         Fe=0;
-      }
-      else
-      {
-         Fe=-Fe_first;
-      }
-      weight_Fe_right=1;
-      weight_Fe_left=0;
-   }
-   else
-   {
-      Fe_first=fitness_receive[0];
-      if(Fe_first>0)
-      {
-         Fe=0;
-      }
-      else
-      {
-         Fe=-Fe_first;
-      }
-      weight_Fe_right=0;
-      weight_Fe_left=0;
+       const double *fitness_receive = wb_receiver_get_data(emitter);
+       wb_receiver_next_packet(receiver); 
+       if(LM>RM)
+       {
+          if(fitness_receive[0] > 0)
+          {
+             Fe=0;
+          }
+          else
+          {
+             Fe=-fitness_receive[0];
+          }
+          weight_Fe_right=1;
+          weight_Fe_left=0;
+       }
+       else
+       {
+          if(fitness_receive[0]>0)
+          {
+             Fe=0;
+          }
+          else
+          {
+             Fe=-Fe_first;
+          }
+          weight_Fe_right=0;
+          weight_Fe_left=0;
+       }
    }
 }
-
-
 
 //Run the neural network
 void neural_network(void)
@@ -215,10 +224,30 @@ void neural_network(void)
 
 }
 
+static void emit_data()
+{
+  int a, b;
+  
+  static double all_sensors[11];
+  
+  for(a = 0; a < 8; a++)
+  {
+    all_sensors[a] = ps_value[a];
+  }
+  
+  for(b = 0; b < 3; b++)
+  {
+    all_sensors[b] = gs_value[b];  
+  }
+  
+   wb_emitter_send(emitter, all_sensors, sizeof(all_sensors));
+}
+
 //Run the whole neural network
 static void run_neural_network(void)
 {
    run_sensors();
+   emit_data();
    Get_Fe();
    neural_network();
    motor_set_speed();
@@ -229,17 +258,17 @@ static void run_neural_network(void)
 int main()
 {
     wb_robot_init();
+    emitter = wb_robot_get_device("emitter");
+    receiver = wb_robot_get_device("receiver");
+    wb_receiver_enable(receiver, get_time_step());
     reset_sensors();
     wb_differential_wheels_enable_encoders(128);
     wb_differential_wheels_set_encoders(0,0);
 
     time_step = wb_robot_get_basic_time_step();
-    wb_receiver_enable(receiver, get_time_step());
 
-    while(wb_robot_step(TIME_STEP) != -1)
+    while(wb_robot_step(time_step) != -1)
     {
-      emitter = wb_robot_get_device("emitter");
-      receiver = wb_robot_get_device("receiver");
       run_neural_network();
     }
     wb_robot_cleanup();
