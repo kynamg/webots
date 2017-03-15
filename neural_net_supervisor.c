@@ -107,9 +107,12 @@ int detect_maze_edge()
 void robot_check() //go through this carefully
 {
   int f, r, maze;
+  printf("inside robot check\n");
+ 
   //check if receiver is getting info
   if (wb_receiver_get_queue_length(receiver) > 0) 
   {
+    printf("inside robot check 1st if\n");
     const double *array = wb_receiver_get_data(receiver);
     check_val = 0; //reset inside loop
     check_val = array[0]; //set variable to first element in array
