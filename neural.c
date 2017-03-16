@@ -147,18 +147,16 @@ static void emit_data()
     all_sensors[b] = gs_values[b];  
   }
   //send sensor data to supervisor
-   wb_emitter_send(emitter, all_sensors, sizeof(all_sensors));
+   wb_emitter_send(emitter, all_sensors, 11*sizeof(double));
 }
+
 
   // compute actuation using Braitenberg's algorithm:
   // The speed of each wheel is computed by summing the value
   // of each sensor multiplied by the corresponding weight of the matrix
 static void neural_network()
 {
-  printf("in neural_network()\n");
   int a, b;
-  a = speed[0];
-  b = speed[1];
   //for left wheel and right wheel, set speed to 0
  // for(a=0; a<2; a++)
  // {
@@ -166,20 +164,22 @@ static void neural_network()
   //} 
   
   //for each sensor set speed to distance multiplied weight
-  for(b=0; b<NB_Dist_Sens; b++)
+  for(a=0; a<2; a++)
   {
-    printf("matrix multiplication\n");
-    speed[a] += matrix[b][a] * ps_values[b];
-    speed[a] = offset[a] + speed[a]*MAX_SPEED;
-  }
+      for(b=0; b<NB_Dist_Sens; b++)
+      {
+         speed[a] += matrix[b][a] * ps_values[b];
+         speed[a] = offset[a] + speed[a]*MAX_SPEED;
+      }
   
   //to check that speed doesn't exceed max speed
-  if(speed[a] > MAX_SPEED)
-  {
-    speed[a] = MAX_SPEED;
-  } 
-  else if (speed[a] < -MAX_SPEED)
-      speed[a] = -MAX_SPEED; 
+      if(speed[a] > MAX_SPEED)
+      {
+         speed[a] = MAX_SPEED;
+      } 
+      else if (speed[a] < -MAX_SPEED)
+         speed[a] = -MAX_SPEED;
+  }
 }
 
 static void run_neural_network()
@@ -199,10 +199,8 @@ int main(int argc, const char *argv[])
     time_step = wb_robot_get_basic_time_step();
     // initialize matrix to zero, hence the robot wheels will initially be stopped
     memset(matrix, 0.0, sizeof(matrix));
-    printf("neural initialise matrix\n");
     while (wb_robot_step(time_step) != -1)
     {
-     printf("run neural network\n");
      run_neural_network();
     }
     

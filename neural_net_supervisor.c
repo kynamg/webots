@@ -21,8 +21,8 @@ static double previous_x, previous_y;
 static int off_maze, check_val, danger_zone;
 
 //given
-static const int POPULATION_SIZE = 50;
-static const int NUM_GENERATIONS = 25;
+static const int POPULATION_SIZE = 10;
+static const int NUM_GENERATIONS = 2;
 static const char *FILE_NAME = "most_fit.txt";
 
 // must match the values in the neural_net.c code
@@ -107,15 +107,14 @@ int detect_maze_edge()
 void robot_check() //go through this carefully
 {
   int f, r, maze;
-  printf("inside robot check\n");
  
   //check if receiver is getting info
   if (wb_receiver_get_queue_length(receiver) > 0) 
-  {
+ {
     printf("inside robot check 1st if\n");
     const double *array = wb_receiver_get_data(receiver);
-    check_val = 0; //reset inside loop
-    check_val = array[0]; //set variable to first element in array
+    //check_val = 0; //reset inside loop
+   // check_val = array[0]; //set variable to first element in array
     
     //floor sensor data
     for(f = 0; f < 3; f++)
@@ -126,16 +125,20 @@ void robot_check() //go through this carefully
     //infrared sensor data
     for (r = 0; r < 8; r++)
     {
-      if(array[r] > check_val)
+      //if(array[r] > check_val)
+      //{
+      //  check_val = array[r];
+      //}
+      if(array[r]<50)
       {
-        check_val = array[r];
+         danger_zone=danger_zone+1;
       }
     }
     
-    if(check_val < 50) // 
-    {
-      danger_zone = danger_zone + 1;
-    }
+    //if(check_val < 50) // 
+    //{
+    //  danger_zone = danger_zone + 1;
+    //}
     
     wb_receiver_next_packet(receiver);
   }
@@ -157,38 +160,35 @@ void robot_check() //go through this carefully
   // run the robot simulation for the specified number of seconds
 void run_seconds(double seconds) 
 {
-  printf("in run seconds\n");
+  
   int i;
-  int n = 10.0 * seconds / time_step;
+  int n = 100.0 * seconds / time_step;
   for (i = 0; i < n; i++) 
  {
-   printf("in run seconds for loop\n");
    //find distance covered in current time step and add to total distance
    const double *load_trans = wb_supervisor_field_get_sf_vec3f(robot_translation); 
-   printf("after load_trans\n");
+   
    double dx = load_trans[X] - robot_trans0[X];
-   printf("after dx\n");
+  
    double dz = load_trans[Z] - robot_trans0[Z];
-   printf("after dz\n");
+  
    dist_from_init = sqrt(dx * dx + dz * dz);
-   printf("after dist from init\n");
+  
    
    double dxx = load_trans[X] - previous_x;
-   printf("after dxx\n");
+
    double dzz = load_trans[Z] - previous_y;
-   printf("after dzz\n");
+ 
    total_dist += sqrt(dxx * dxx + dzz * dzz);
-   printf("after total_dist\n");
+  
    
    previous_x = load_trans[X];
-   printf("after previous_x\n");
+   
    previous_y = load_trans[Y];
-   printf("after previous_y\n");
+  
  
    wb_robot_step(time_step);
-   printf("before robot_check\n");
    robot_check();
-   
  }
 }
   
@@ -196,7 +196,7 @@ double fitness()
 {
   double fitness_val;
   
-  double reward = (total_dist * 100) + (max_dist * 400); //experiment with numbers here
+  double reward = (total_dist * 100) + (max_dist * 200); //experiment with numbers here
   double punishment = (danger_zone) + (off_maze);
   
   fitness_val = (reward) - (punishment);
@@ -228,11 +228,9 @@ void evaluate_genotype(Genotype genotype) {
   danger_zone = 0;
   off_maze = 0;
   dist_from_init = 0;
-  printf("reset fitness variables\n");
   // reset robot vector position and rotation
   wb_supervisor_field_set_sf_vec3f(robot_translation, robot_trans0);
   wb_supervisor_field_set_sf_rotation(robot_rotation, robot_rot0);
-  printf("reset robot positions\n");
   }
   
    
@@ -248,7 +246,6 @@ void run_optimization() {
   for  (i = 0; i < NUM_GENERATIONS; i++) {    
     for (j = 0; j < POPULATION_SIZE; j++) {
       printf("generation: %d, genotype: %d\n", i, j);
-      printf("in for loops\n");
       // evaluate genotype
       Genotype genotype = population_get_genotype(population, j);
       evaluate_genotype(genotype);
